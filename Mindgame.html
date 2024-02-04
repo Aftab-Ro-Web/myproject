@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logic Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+  <label for="number1">Enter Number</label>
+  <input type="number" id="number1" class="form-control mb-2" min="1" placeholder="Enter a number">
+
+  <label for="number2">Enter Number</label> 
+  <input type="number" id="number2" class="form-control mb-2" min="1" placeholder="Enter a number">
+
+  <button id="generateRandom" class="btn btn-primary mb-2">Generate Random Number</button>
+
+  <div id="userGuessInput" style="display: none;">
+    <label for="userGuess">Enter your guess:</label>
+    <input type="number" id="userGuess" class="form-control mb-2" min="1" placeholder="Enter your guess">
+    <button id="checkGuess" class="btn btn-success">Check Guess</button>
+  </div>
+
+  <p id="gameStatus" class="mt-3"></p>
+  <p id="error" class="text-danger" style="display: none;"></p>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+  $(document).ready(function () {
+    let attemptsLeft;
+    let totalAttempts;
+    let randomNumber;
+
+    $("#generateRandom").click(function () {
+      const num1 = parseInt($("#number1").val());
+      const num2 = parseInt($("#number2").val());
+
+      const errorDiv = $("#error");
+
+      if (!num1 || !num2) {
+        errorDiv.text("Please enter valid numbers.");
+        errorDiv.show();
+        return;
+      } else if (num1 >= num2) {
+        errorDiv.text("Number 1 must be lower than Number 2. Entered values: Number 1 = " + num1 + ", Number 2 = " + num2);
+        errorDiv.show();
+        return;
+      } else {
+        errorDiv.hide();
+      }
+
+      totalAttempts = parseInt((num1 + num2) * 0.33); // Total attempts based on 33% of the sum
+      attemptsLeft = totalAttempts;
+
+      // Generate random number excluding number1 and number2
+      do {
+        randomNumber = Math.floor(Math.random() * (num2 - num1 - 1)) + num1 + 1;
+      } while (randomNumber === num1 || randomNumber === num2);
+
+      sessionStorage.setItem("savedNumber", randomNumber);
+
+      $("#userGuessInput").show();
+      $("#gameStatus").text(`Attempts left: ${attemptsLeft}/${totalAttempts}`);
+    });
+
+    $("#checkGuess").click(function () {
+      const userGuess = parseInt($("#userGuess").val());
+
+      if (!isNaN(userGuess)) {
+        const savedNumber = parseInt(sessionStorage.getItem("savedNumber"));
+
+        attemptsLeft--;
+
+        if (userGuess === savedNumber) {
+          const guessedAttempt = totalAttempts - attemptsLeft;
+          $("#gameStatus").text(`Congratulations! You guessed the correct number in attempt ${guessedAttempt}/${totalAttempts}.`);
+          $("#userGuessInput").hide();
+        } else {
+          if (attemptsLeft === 0) {
+            $("#gameStatus").text(`No attempts left. The correct number was ${randomNumber}. Please generate a new random number.`);
+            $("#userGuessInput").hide();
+          } else {
+            $("#gameStatus").text(`Try again! Attempts left: ${attemptsLeft}/${totalAttempts}`);
+          }
+        }
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
